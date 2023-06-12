@@ -11,6 +11,7 @@ from keras.preprocessing.text import Tokenizer
 from keras.utils import pad_sequences, to_categorical
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import MultinomialNB
+from keras.layers import Bidirectional
 
 nltk.download("stopwords")
 
@@ -92,6 +93,32 @@ def train_model_2(model, X_train, y_train, X_test, y_test):
     )
 
 
+def create_model_3(vocab_size, max_length, num_classes):
+    model = Sequential()
+    model.add(Embedding(input_dim=vocab_size, output_dim=32, input_length=max_length))
+    model.add(Bidirectional(LSTM(128, return_sequences=True)))
+    model.add(Bidirectional(LSTM(128)))
+    model.add(Dense(32, activation="relu"))
+    model.add(Dense(num_classes, activation="softmax"))
+    model.compile(
+        loss="categorical_crossentropy", optimizer="adam", metrics=["accuracy"]
+    )
+    return model
+
+
+def train_model_3(model, X_train, y_train, X_test, y_test):
+    es = EarlyStopping(monitor="val_loss", mode="min", verbose=1, patience=3)
+    model.summary()
+    model.fit(
+        X_train,
+        y_train,
+        batch_size=1024,
+        epochs=10,
+        validation_data=(X_test, y_test),
+        callbacks=[es],
+    )
+
+
 # Read the data
 data = pd.read_csv("labeled_data.csv")
 
@@ -121,6 +148,11 @@ model_1.fit(X_train, y_train)
 model_2 = create_model_2(vocab_size, max_length=150, num_classes=num_classes)
 train_model_2(model_2, X_train, y_train_categorical, X_test, y_test_categorical)
 
+# Create and train model 3 (BiLSTM)
+model_3 = create_model_3(vocab_size, max_length=150, num_classes=num_classes)
+train_model_3(model_3, X_train, y_train_categorical, X_test, y_test_categorical)
+
 # Get the accuracy of all models
 print(f"Model 1 (Naive Bayes) accuracy: {model_1.score(X_test, y_test)}")
 print(f"Model 2 (LSTM) accuracy: {model_2.evaluate(X_test, y_test_categorical)[1]}")
+print(f"Model 3 (BiLSTM) accuracy: {model_3.evaluate(X_test, y_test_categorical)[1]}")
