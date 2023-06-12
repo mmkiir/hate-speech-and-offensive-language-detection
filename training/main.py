@@ -62,9 +62,6 @@ def preprocess_data(data):
     # Get the labels
     labels = data["class"].tolist()
 
-    # Convert labels to categorical
-    labels = to_categorical(labels)
-
     return text, labels, vocab_size
 
 
@@ -104,6 +101,9 @@ text, labels, vocab_size = preprocess_data(data)
 X_train, X_test, y_train, y_test = train_test_split(
     text, labels, test_size=0.2, random_state=42
 )
+num_classes = len(set(labels))
+y_train_categorical = to_categorical(y_train, num_classes=num_classes)
+y_test_categorical = to_categorical(y_test, num_classes=num_classes)
 
 X_train = np.array(X_train)
 X_test = np.array(X_test)
@@ -111,6 +111,5 @@ y_train = np.array(y_train)
 y_test = np.array(y_test)
 
 # Create and train the model
-num_classes = labels.shape[1]
 model = create_model(vocab_size, max_length=150, num_classes=num_classes)
-train_model(model, X_train, y_train, X_test, y_test)
+train_model(model, X_train, y_train_categorical, X_test, y_test_categorical)
