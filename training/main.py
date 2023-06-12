@@ -18,6 +18,7 @@ from keras.preprocessing.text import Tokenizer
 from keras.utils import pad_sequences, to_categorical
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import MultinomialNB
+from sklearn.tree import DecisionTreeClassifier
 
 nltk.download("stopwords")
 
@@ -151,6 +152,15 @@ def train_cnn(model, X_train, y_train, X_test, y_test):
     )
 
 
+def create_decision_tree():
+    model = DecisionTreeClassifier()
+    return model
+
+
+def train_decision_tree(model, X_train, y_train):
+    model.fit(X_train, y_train)
+
+
 # Read the data
 data = pd.read_csv("labeled_data.csv")
 
@@ -196,8 +206,13 @@ train_cnn(
     y_test_cat,
 )
 
+# Create and train model 5 (Decision Tree)
+decision_tree = create_decision_tree()
+train_decision_tree(decision_tree, X_train, y_train)
+
 # Get the accuracy of all models
 print(f"Naive Baye accuracy: {naive_bayes.score(X_test, y_test)}")
-print(f"CNN accuracy: {cnn.evaluate(X_test, y_test_cat)[1]}")
+print(f"Decision Tree accuracy: {decision_tree.score(X_test, y_test)}")
 print(f"LSTM accuracy: {lstm.evaluate(X_test, y_test_cat)[1]}")
 print(f"BiLSTM accuracy: {bilstm.evaluate(X_test, y_test_cat)[1]}")
+print(f"CNN accuracy: {cnn.evaluate(X_test, y_test_cat)[1]}")
